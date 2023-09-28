@@ -11,17 +11,17 @@ I've made a deliberate choice to keep the Makefile included here as explicit and
 
 Hence, the example Makefile is neither pretty nor succinct.
 
-## Choice of testing framework
+### Choice of testing framework
 
 I've picked [Google Test/gtest](https://github.com/google/googletest/) because I'm familiar with it. This should work with any preferred test framework.
 
-## Language and Linking Technicalities
+### Language and Linking Technicalities
 
 Fortran and C/C++ make differing assumptions about data sizes, and passing by value or reference (more specifically, pointer). There are a few other important points that I don't cover as we work through this code linking. I've found the [Oracle Documentation](https://docs.oracle.com/cd/E19422-01/819-3685/11_cfort.html) to be an excellent resource, and I strongly recommend reading through this before attempting to replicate this method in a project.
 
 Some Fortran coders like to keep things in capital letters. I find it more readable not to.
 
-## Platform
+### Platform
 
 This example was developed and tested in a Linux (Debian) environment, since this is common with Fortran developers who typically require a technical/scientific environment. I've selected gfortran/gcc/g++ because it is widely available. Version 9.4.0 of gfortran/gcc/g++ was used.
 
@@ -42,7 +42,7 @@ end function Squared
 
 The important points to note here are:
 
-1. **`bind(C, name="squared_")`** has been added to the function definition. This directive declares that a `C` compatible calling convention is to be used. Amongst other things, this overrides the Fortran name mangling rules to match the expectation of the C linker, which prevents the main Fortran program from calling the function using the default source name. Since we are trying to test a Fortran code, and we are not building a library primarily for consumption by a C/C++ code, the `name="squared_"` statement has been added to rename the function symbol to match the expectation of the default Fortran naming convention, so the `bind` directive is effectively transparent to the rest of the Fortran code. We must therefore call function from our C/C++ with the name "squared_", whilst the rest of our Fortran source can continue to use the name "Squared".
+1. **`bind(C, name="squared_")`** has been added to the function definition. This directive declares that a `C` compatible calling convention is to be used. Amongst other things, this overrides the Fortran name mangling rules to match the expectation of the C linker, which prevents the main Fortran program from calling the function using the default source name. Since we are trying to test a Fortran code, and we are not building a library primarily for consumption by a C/C++ code, the `name="squared_"` statement has been added to rename the function symbol to match the expectation of the default Fortran naming convention, so the `bind` directive is effectively transparent to the rest of the Fortran code. We must therefore call function from our C/C++ with the name "squared_", whilst the rest of our Fortran source can continue to use the name "Squared". Depending on compiler toolchain, the `bind()` statement may not be needed if assuming the C calling conventions. If so, not including it has the advantage that code changes specifically for testing may not be needed. Including it means it should be easier to move to another compiler toolchain.
 2. **`(kind=8)`** has been added to the `real` types. This must match the type in the C/C++ code. On x86, this corresponds to a `double`. See [Oracle Documentation](https://docs.oracle.com/cd/E19422-01/819-3685/11_cfort.html).
 
 The main Fortran program is found at `fortran_app/src/fortran_app.f90`. This is defined as follows:
