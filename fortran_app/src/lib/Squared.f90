@@ -1,6 +1,7 @@
 function Squared(i) bind(C, name="squared_")
+  use iso_fortran_env, only: double=>real64
   implicit none
-  real(kind=8) :: Squared
-  real(kind=8), intent( IN ) :: i
+  real(double) :: Squared
+  real(double), intent( IN ) :: i
   Squared = i*i
 end function Squared

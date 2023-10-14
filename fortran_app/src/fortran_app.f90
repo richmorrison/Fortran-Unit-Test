@@ -1,6 +1,7 @@
 program Square
+  use iso_fortran_env, only: double=>real64
   implicit none
-  real(kind=8):: i, Squared
+  real(kind=double):: i, Squared
   print *, 'Enter number: '
   read *, i
   print *, 'Squared: ', Squared(i)

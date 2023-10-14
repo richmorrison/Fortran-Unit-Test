@@ -45,6 +45,18 @@ The important points to note here are:
 1. **`bind(C, name="squared_")`** has been added to the function definition. This directive declares that a `C` compatible calling convention is to be used. Amongst other things, this overrides the Fortran name mangling rules to match the expectation of the C linker, which prevents the main Fortran program from calling the function using the default source name. Since we are trying to test a Fortran code, and we are not building a library primarily for consumption by a C/C++ code, the `name="squared_"` statement has been added to rename the function symbol to match the expectation of the default Fortran naming convention, so the `bind` directive is effectively transparent to the rest of the Fortran code. We must therefore call function from our C/C++ with the name "squared_", whilst the rest of our Fortran source can continue to use the name "Squared". Depending on compiler toolchain, the `bind()` statement may not be needed if assuming the C calling conventions. If so, not including it has the advantage that code changes specifically for testing may not be needed. Including it means it should be easier to move to another compiler toolchain.
 2. **`(kind=8)`** has been added to the `real` types. This must match the type in the C/C++ code. On x86, this corresponds to a `double`. See [Oracle Documentation](https://docs.oracle.com/cd/E19422-01/819-3685/11_cfort.html).
 
+If available, we can use the `iso_fortran_env` module to improve portability, and create an alias to communicate our intent for a c-like double:
+
+```
+function Squared(i) bind(C, name="squared_")
+  use iso_fortran_env, only: double=>real64
+  implicit none
+  real(double) :: Squared
+  real(double), intent( IN ) :: i
+  Squared = i*i
+end function Squared
+```
+
 The main Fortran program is found at `fortran_app/src/fortran_app.f90`. This is defined as follows:
 
 ```
@@ -57,7 +69,20 @@ program Square
 end program Square
 ```
 
-The only point to note is that the name of the fucntion being called is as expected.
+Again, we can use the `iso_fortran_env` module:
+
+```
+program Square
+  use iso_fortran_env, only: double=>real64
+  implicit none
+  real(kind=double):: i, Squared
+  print *, 'Enter number: '
+  read *, i
+  print *, 'Squared: ', Squared(i)
+end program Square
+```
+
+The only point to note is that the name of the function being called is as expected.
 
 The code is compiled by creating the *shared object* file which contains the target function. We are creating a shared object (`-shared`), and we need position independent code (`-fPIC`).
 
